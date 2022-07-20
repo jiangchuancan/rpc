@@ -1,2 +1,4 @@
 # rpc
 基于muduo库，Protobuf实现，以Zookeeper为服务配置中心的分布式RPC通信框架
+主要技术：使用muduo库，protobuf ，zookeeper，异步缓存日志机制，cmake自动化编译
+rpc服务提供方通过NotifyService向zookeeper分布服务，所注册的都是临时性节点，即当服务提供方挂掉时，在zookeeper上会将该znode删除，且znode的存储了该服务方的ip和port，紧接着服务方进入等待调用方接入，这里利用muduo库，开启了4个线程，1个IO线程，3个工作线程。rpc调用方首先去zookeeper获取想要调用服务的ip和port，然后通过ip和port去连接服务器节点。zookeeper在这就是一个服务的注册和发布中心，分布式协调服务，调用发布服务，不知道服务在哪里，通过zookeeper协调（中间件）。当服务节点接收调用方消息，主要做四件事：获取参数，做本地业务，组织响应数据，发送响应数据。此外所有的数据协议都是使用protobuf。对于异步缓存机制，可能存在多个线程往缓存队列写，一个线程从缓存队列拿数据往磁盘里写，当缓存队列不为0时，会通过信号量通知。
